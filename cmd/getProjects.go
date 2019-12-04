@@ -74,16 +74,13 @@ type Project struct {
 }
 
 func extractProjects(resp *http.Response) ([]Project, error) {
-	var data map[string]interface{}
-	decoder := json.NewDecoder(resp.Body)
-	decoder.UseNumber()
-	err := decoder.Decode(&data)
+	data, err := decodeResponse(resp)
 	if err != nil {
 		return nil, err
 	}
 	projects, ok := data["projects"]
-	if ok == false {
-		return nil, err
+	if !ok {
+		return nil, errors.New("no key named 'projects' in data")
 	}
 	castedProjects, isCasted := projects.([]interface{})
 	if !isCasted {
@@ -121,16 +118,17 @@ func extractProjects(resp *http.Response) ([]Project, error) {
 	return p, nil
 }
 
+func decodeResponse(resp *http.Response) (map[string]interface{}, error) {
+	var data map[string]interface{}
+	decoder := json.NewDecoder(resp.Body)
+	decoder.UseNumber()
+	err := decoder.Decode(&data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
 func init() {
 	getCmd.AddCommand(getProjectsCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// getProjectsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// getProjectsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
