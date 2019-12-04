@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	// "io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -70,31 +69,53 @@ type Project struct {
 	Name string
 }
 
-// extractProjects have to return ([]Project, error) TODO
-func extractProjects(resp *http.Response) (Project, error) {
-	// TODO id is converted wrongly.
+func extractProjects(resp *http.Response) ([]Project, error) {
 	var data map[string]interface{}
-	err := json.NewDecoder(resp.Body).Decode(&data)
+	decoder := json.NewDecoder(resp.Body)
+	decoder.UseNumber()
+	err := decoder.Decode(&data)
 	if err != nil {
-		return Project{}, err
+		return nil, err
 	}
 	projects, ok := data["projects"]
 	if ok == false {
-		return Project{}, err
+		return nil, err
 	}
 	castedProjects, isCasted := projects.([]interface{})
 	if !isCasted {
-		return Project{}, errors.New("failed to convert projects")
+		return nil, errors.New("failed to convert projects")
 	}
+
+	var p []Project
 	for _, project := range castedProjects {
 		var castedProject map[string]interface{}
 		castedProject, isCasted = project.(map[string]interface{})
 		if !isCasted {
-			return Project{}, errors.New("failed to convert a project")
+			return nil, errors.New("failed to convert a project")
 		}
+		var pro Project
+		for k, v := range castedProject {
+			if k == "name" {
+				var name string
+				name, ok := v.(string)
+				if !ok {
+					return nil, errors.New("failed to get project name")
+				}
+				pro.Name = name
+			}
+			if k == "id" {
+				var id json.Number
+				id, ok := v.(json.Number)
+				if !ok {
+					return nil, errors.New("failed to get project id")
+				}
+				pro.Id, _ = id.Int64()
+			}
+		}
+		p = append(p, pro)
 		fmt.Println(castedProject)
 	}
-	return Project{}, nil
+	return p, nil
 }
 
 func init() {
