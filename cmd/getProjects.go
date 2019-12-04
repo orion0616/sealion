@@ -30,6 +30,7 @@ import (
 var getProjectsCmd = &cobra.Command{
 	Use:   "projects",
 	Short: "list of todoist project",
+
 	Run: func(cmd *cobra.Command, args []string) {
 		token, err := getToken()
 		if err != nil {
@@ -51,7 +52,10 @@ var getProjectsCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		fmt.Println(projects)
+		fmt.Printf("ID         NAME\n")
+		for _, project := range projects {
+			fmt.Printf("%-10d %s\n", project.Id, project.Name)
+		}
 	},
 }
 
@@ -113,7 +117,6 @@ func extractProjects(resp *http.Response) ([]Project, error) {
 			}
 		}
 		p = append(p, pro)
-		fmt.Println(castedProject)
 	}
 	return p, nil
 }
