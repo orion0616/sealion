@@ -47,18 +47,12 @@ var getProjectsCmd = &cobra.Command{
 			return
 		}
 		defer resp.Body.Close()
-		var data map[string][]map[string]interface{}
-		err = json.NewDecoder(resp.Body).Decode(&data)
+		projects, err := extractProjects(resp)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		projects, ok := data["projects"]
-		if ok == false {
-			fmt.Println(err)
-			return
-		}
-		// Must type change interface{} -> []map[string]interface{}
+		fmt.Println(projects)
 	},
 }
 
@@ -68,6 +62,39 @@ func getToken() (string, error) {
 		return "", errors.New("token is not set")
 	}
 	return token, nil
+}
+
+// Project express a todoist project
+type Project struct {
+	Id   int64
+	Name string
+}
+
+// extractProjects have to return ([]Project, error) TODO
+func extractProjects(resp *http.Response) (Project, error) {
+	// TODO id is converted wrongly.
+	var data map[string]interface{}
+	err := json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return Project{}, err
+	}
+	projects, ok := data["projects"]
+	if ok == false {
+		return Project{}, err
+	}
+	castedProjects, isCasted := projects.([]interface{})
+	if !isCasted {
+		return Project{}, errors.New("failed to convert projects")
+	}
+	for _, project := range castedProjects {
+		var castedProject map[string]interface{}
+		castedProject, isCasted = project.(map[string]interface{})
+		if !isCasted {
+			return Project{}, errors.New("failed to convert a project")
+		}
+		fmt.Println(castedProject)
+	}
+	return Project{}, nil
 }
 
 func init() {
