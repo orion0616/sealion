@@ -16,7 +16,13 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	// "io/ioutil"
+	"net/http"
+	"net/url"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -32,8 +38,42 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hello World")
+		token, err := getToken()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		values := url.Values{}
+		values.Add("token", token)
+		values.Add("sync_token", "*")
+		values.Add("resource_types", "[\"projects\"]")
+		resp, err := http.PostForm("https://todoist.com/api/v8/sync", values)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		defer resp.Body.Close()
+		var data map[string][]map[string]interface{}
+		err = json.NewDecoder(resp.Body).Decode(&data)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		projects, ok := data["projects"]
+		if ok == false {
+			fmt.Println(err)
+			return
+		}
+		// Must type change interface{} -> []map[string]interface{}
 	},
+}
+
+func getToken() (string, error) {
+	token := os.Getenv("TODOIST_TOKEN")
+	if token == "" {
+		return "", errors.New("token is not set")
+	}
+	return token, nil
 }
 
 func init() {
