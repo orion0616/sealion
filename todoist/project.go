@@ -7,6 +7,7 @@ import (
 	"net/url"
 )
 
+// GetProjectsResult express a result of getting all projects
 type GetProjectsResult struct {
 	SyncToken     string `json:"sync_token"`
 	TempIDMapping struct {
