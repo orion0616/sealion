@@ -31,6 +31,7 @@ var getLabelsCmd = &cobra.Command{
 		client, err := todoist.NewClient()
 		if err != nil {
 			fmt.Println(err)
+			return
 		}
 		labels, err := client.GetLabels()
 		if err != nil {
