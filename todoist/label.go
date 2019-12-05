@@ -58,3 +58,7 @@ func ExtractLabels(resp *http.Response) ([]Label, error) {
 	}
 	return getLabelsResult.Labels, nil
 }
+
+// AddLabel adds labels to a task
+func (c *Client) AddLabel(labels []string, task string) error {
+}
