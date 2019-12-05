@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 
+	"github.com/orion0616/sealion/todoist"
 	"github.com/spf13/cobra"
 )
 
@@ -32,16 +32,15 @@ var getProjectsCmd = &cobra.Command{
 	Short: "list of todoist project",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		token, err := getToken()
+		client, err := todoist.NewClient()
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
 		values := url.Values{}
-		values.Add("token", token)
+		values.Add("token", client.Token)
 		values.Add("sync_token", "*")
 		values.Add("resource_types", "[\"projects\"]")
-		resp, err := http.PostForm("https://todoist.com/api/v8/sync", values)
+		resp, err := client.Client.PostForm("https://todoist.com/api/v8/sync", values)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -57,14 +56,6 @@ var getProjectsCmd = &cobra.Command{
 			fmt.Printf("%-10d %s\n", project.Id, project.Name)
 		}
 	},
-}
-
-func getToken() (string, error) {
-	token := os.Getenv("TODOIST_TOKEN")
-	if token == "" {
-		return "", errors.New("token is not set")
-	}
-	return token, nil
 }
 
 // Project express a todoist project
