@@ -53,18 +53,12 @@ var getProjectsCmd = &cobra.Command{
 		}
 		fmt.Printf("ID         NAME\n")
 		for _, project := range projects {
-			fmt.Printf("%-10d %s\n", project.Id, project.Name)
+			fmt.Printf("%-10d %s\n", project.ID, project.Name)
 		}
 	},
 }
 
-// Project express a todoist project
-type Project struct {
-	Id   int64
-	Name string
-}
-
-func extractProjects(resp *http.Response) ([]Project, error) {
+func extractProjects(resp *http.Response) ([]todoist.Project, error) {
 	data, err := decodeResponse(resp)
 	if err != nil {
 		return nil, err
@@ -78,14 +72,14 @@ func extractProjects(resp *http.Response) ([]Project, error) {
 		return nil, errors.New("failed to convert projects")
 	}
 
-	var p []Project
+	var p []todoist.Project
 	for _, project := range castedProjects {
 		var castedProject map[string]interface{}
 		castedProject, isCasted = project.(map[string]interface{})
 		if !isCasted {
 			return nil, errors.New("failed to convert a project")
 		}
-		var pro Project
+		var pro todoist.Project
 		for k, v := range castedProject {
 			if k == "name" {
 				var name string
@@ -101,7 +95,7 @@ func extractProjects(resp *http.Response) ([]Project, error) {
 				if !ok {
 					return nil, errors.New("failed to get project id")
 				}
-				pro.Id, _ = id.Int64()
+				pro.ID, _ = id.Int64()
 			}
 		}
 		p = append(p, pro)
