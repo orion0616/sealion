@@ -2,17 +2,33 @@ package todoist
 
 import (
 	"encoding/json"
-	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/orion0616/sealion/util"
 )
+
+type GetProjectsResult struct {
+	SyncToken     string `json:"sync_token"`
+	TempIDMapping struct {
+	} `json:"temp_id_mapping"`
+	FullSync bool `json:"full_sync"`
+	Projects []Project
+}
 
 // Project express a todoist project
 type Project struct {
-	ID   int64
-	Name string
+	IsFavorite   int         `json:"is_favorite"`
+	Color        int         `json:"color"`
+	Collapsed    int         `json:"collapsed"`
+	InboxProject bool        `json:"inbox_project,omitempty"`
+	ChildOrder   int         `json:"child_order"`
+	ID           int         `json:"id"`
+	Name         string      `json:"name"`
+	IsDeleted    int         `json:"is_deleted"`
+	ParentID     interface{} `json:"parent_id"`
+	LegacyID     int         `json:"legacy_id,omitempty"`
+	Shared       bool        `json:"shared"`
+	IsArchived   int         `json:"is_archived"`
 }
 
 // GetProjects returns a list of todoist projects
@@ -36,46 +52,14 @@ func (c *Client) GetProjects() ([]Project, error) {
 
 // ExtractProjects extracts projects from http.Response
 func ExtractProjects(resp *http.Response) ([]Project, error) {
-	data, err := util.DecodeResponse(resp)
+	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	projects, ok := data["projects"]
-	if !ok {
-		return nil, errors.New("no key named 'projects' in data")
-	}
-	castedProjects, isCasted := projects.([]interface{})
-	if !isCasted {
-		return nil, errors.New("failed to convert projects")
-	}
 
-	var p []Project
-	for _, project := range castedProjects {
-		var castedProject map[string]interface{}
-		castedProject, isCasted = project.(map[string]interface{})
-		if !isCasted {
-			return nil, errors.New("failed to convert a project")
-		}
-		var pro Project
-		for k, v := range castedProject {
-			if k == "name" {
-				var name string
-				name, ok := v.(string)
-				if !ok {
-					return nil, errors.New("failed to get project name")
-				}
-				pro.Name = name
-			}
-			if k == "id" {
-				var id json.Number
-				id, ok := v.(json.Number)
-				if !ok {
-					return nil, errors.New("failed to get project id")
-				}
-				pro.ID, _ = id.Int64()
-			}
-		}
-		p = append(p, pro)
+	var getProjectsResult GetProjectsResult
+	if err := json.Unmarshal(data, &getProjectsResult); err != nil {
+		return nil, err
 	}
-	return p, nil
+	return getProjectsResult.Projects, nil
 }
