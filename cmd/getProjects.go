@@ -40,7 +40,7 @@ var getProjectsCmd = &cobra.Command{
 		values.Add("token", client.Token)
 		values.Add("sync_token", "*")
 		values.Add("resource_types", "[\"projects\"]")
-		resp, err := client.Client.PostForm("https://todoist.com/api/v8/sync", values)
+		resp, err := client.HTTPClient.PostForm("https://todoist.com/api/v8/sync", values)
 		if err != nil {
 			fmt.Println(err)
 			return

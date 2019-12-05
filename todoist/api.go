@@ -20,8 +20,8 @@ import (
 
 // Client is todoist client
 type Client struct {
-	Client http.Client
-	Token  string
+	HTTPClient *http.Client
+	Token      string
 }
 
 func getToken() (string, error) {
@@ -38,5 +38,5 @@ func NewClient() (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Client{http.Client{}, token}, nil
+	return &Client{&http.Client{}, token}, nil
 }
