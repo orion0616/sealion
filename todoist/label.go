@@ -2,9 +2,15 @@ package todoist
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
+
+	"github.com/orion0616/sealion/util"
 )
 
 // GetLabelsResult express a result of getting all label
@@ -59,6 +65,74 @@ func ExtractLabels(resp *http.Response) ([]Label, error) {
 	return getLabelsResult.Labels, nil
 }
 
-// AddLabel adds labels to a task
-func (c *Client) AddLabel(labels []string, task string) error {
+// AddLabels adds labels to tasks in a project
+func (c *Client) AddLabels(labelNames []string, project string) error {
+	tasks, err := c.GetTasks(project)
+	if err != nil {
+		return err
+	}
+	for _, task := range tasks {
+		labelIDs, err := c.createLabelIDs(labelNames)
+		if err != nil {
+			return err
+		}
+		err = c.AddLabelsToTask(labelIDs, task.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AddLabelsToTask adds labels to a task
+func (c *Client) AddLabelsToTask(labelIDs []int64, taskID int64) error {
+	uuid, err := util.CreateUUID()
+	if err != nil {
+		return err
+	}
+	commands := fmt.Sprintf("[{\"type\": \"item_update\", \"uuid\": \"%s\", \"args\": {\"id\": %d, \"labels\": %s}}]", uuid, taskID, createLabelIDsString(labelIDs))
+	values := url.Values{}
+	values.Add("token", c.Token)
+	values.Add("commands", commands)
+
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.Status != "200 OK" {
+		return fmt.Errorf("failed to add labels to a task ID `%d`. Status -> %s", taskID, resp.Status)
+	}
+	return nil
+}
+
+func (c *Client) createLabelIDs(labelNames []string) ([]int64, error) {
+	var ret []int64
+	var added bool
+	labels, err := c.GetLabels()
+	if err != nil {
+		return nil, err
+	}
+	for _, name := range labelNames {
+		added = false
+		for _, label := range labels {
+			if name == label.Name {
+				ret = append(ret, label.ID)
+				added = true
+				break
+			}
+		}
+		if !added {
+			return nil, errors.New("failed to find a label")
+		}
+	}
+	return ret, nil
+}
+
+func createLabelIDsString(ids []int64) string {
+	var strs []string
+	for _, id := range ids {
+		strs = append(strs, strconv.FormatInt(id, 10))
+	}
+	return "[" + strings.Join(strs, ",") + "]"
 }

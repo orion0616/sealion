@@ -18,16 +18,17 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/orion0616/sealion/todoist"
 	"github.com/spf13/cobra"
 )
 
 // addLabelCmd represents the addLabel command
 var addLabelCmd = &cobra.Command{
-	Use:   "label",
-	Short: "Add a label to a task",
+	Use:   "labels",
+	Short: "Add labels to a task",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		task, err := cmd.Flags().GetString("task")
+		project, err := cmd.Flags().GetString("project")
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -37,7 +38,7 @@ var addLabelCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		err := client.AddLabel(args, task)
+		err = client.AddLabels(args, project)
 		if err != nil {
 			fmt.Println(err)
 		} else {
@@ -48,5 +49,5 @@ var addLabelCmd = &cobra.Command{
 
 func init() {
 	addCmd.AddCommand(addLabelCmd)
-	getTasksCmd.Flags().StringP("task", "t", "", "select a task")
+	addLabelCmd.Flags().StringP("project", "p", "", "select a project")
 }
