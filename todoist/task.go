@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/orion0616/sealion/util"
@@ -85,6 +86,19 @@ func ExtractTasks(resp *http.Response) ([]Task, error) {
 	return projectData.Tasks, nil
 }
 
+// AddTasks adds tasks from a file
+func (c *Client) AddTasks(fileName string) error {
+	lines, err := util.ReadFile(fileName)
+	for _, line := range lines {
+		words := strings.Split(line, " ")
+		err = c.addTask(words[0], words[1])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (c *Client) addTask(taskName, projectName string) error {
 	projects, err := c.GetProjects()
 	if err != nil {
@@ -105,7 +119,7 @@ func (c *Client) addTask(taskName, projectName string) error {
 	if err != nil {
 		return err
 	}
-	commands := fmt.Sprintf("[{\"type\": \"item_add\", \"temp_id\": \"%s\", \"uuid\": \"%s\",\"args\": {\"content\": %s, \"project_id\": %d}}]",
+	commands := fmt.Sprintf("[{\"type\": \"item_add\", \"temp_id\": \"%s\", \"uuid\": \"%s\",\"args\": {\"content\": \"%s\", \"project_id\": %d}}]",
 		uuid1, uuid2, taskName, projectID)
 	values := url.Values{}
 	values.Add("token", c.Token)

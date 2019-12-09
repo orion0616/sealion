@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/orion0616/sealion/todoist"
 	"github.com/spf13/cobra"
 )
 
@@ -26,11 +27,25 @@ var addTaskCmd = &cobra.Command{
 	Use:   "task",
 	Short: "add tasks written in a file to a project",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("addTask called")
+		fileName, err := cmd.Flags().GetString("file")
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		client, err := todoist.NewClient()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		err = client.AddTasks(fileName)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	},
 }
 
 func init() {
 	addCmd.AddCommand(addTaskCmd)
-	addLabelCmd.Flags().StringP("file", "f", "", "select a file")
+	addTaskCmd.Flags().StringP("file", "f", "", "select a file")
 }
