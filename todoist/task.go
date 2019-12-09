@@ -2,11 +2,14 @@ package todoist
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/orion0616/sealion/util"
 )
 
 // ProjectData is data of project and its items
@@ -80,4 +83,41 @@ func ExtractTasks(resp *http.Response) ([]Task, error) {
 		return nil, err
 	}
 	return projectData.Tasks, nil
+}
+
+func (c *Client) addTask(taskName, projectName string) error {
+	projects, err := c.GetProjects()
+	if err != nil {
+		return err
+	}
+	var projectID int64
+	for _, project := range projects {
+		if project.Name == projectName {
+			projectID = int64(project.ID)
+		}
+	}
+
+	uuid1, err := util.CreateUUID()
+	if err != nil {
+		return err
+	}
+	uuid2, err := util.CreateUUID()
+	if err != nil {
+		return err
+	}
+	commands := fmt.Sprintf("[{\"type\": \"item_add\", \"temp_id\": \"%s\", \"uuid\": \"%s\",\"args\": {\"content\": %s, \"project_id\": %d}}]",
+		uuid1, uuid2, taskName, projectID)
+	values := url.Values{}
+	values.Add("token", c.Token)
+	values.Add("commands", commands)
+
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.Status != "200 OK" {
+		return fmt.Errorf("failed to add task to a project ID `%d`. Status -> %s", projectID, resp.Status)
+	}
+	return nil
 }
