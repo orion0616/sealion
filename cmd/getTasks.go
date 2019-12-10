@@ -43,13 +43,19 @@ var getTasksCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		fmt.Printf("ID         CONTENT\n")
-		for _, task := range tasks {
-			fmt.Printf("%-10d %s\n", task.ID, task.Content)
-		}
+		fmt.Printf(createGetTasksResult(tasks))
 	},
 }
 
+func createGetTasksResult(tasks []todoist.Task) string {
+	var bytes []byte
+	bytes = append(bytes, "ID         NAME\n"...)
+	for _, task := range tasks {
+		str := fmt.Sprintf("%-10d %s\n", task.ID, task.Content)
+		bytes = append(bytes, str...)
+	}
+	return string(bytes)
+}
 func init() {
 	getCmd.AddCommand(getTasksCmd)
 	getTasksCmd.Flags().StringP("project", "p", "", "select a project")
