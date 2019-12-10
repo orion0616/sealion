@@ -38,11 +38,18 @@ var getLabelsCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		fmt.Printf("ID         NAME\n")
-		for _, label := range labels {
-			fmt.Printf("%-10d %s\n", label.ID, label.Name)
-		}
+		fmt.Printf(createGetLabelsResult(labels))
 	},
+}
+
+func createGetLabelsResult(labels []todoist.Label) string {
+	var bytes []byte
+	bytes = append(bytes, "ID         NAME\n"...)
+	for _, label := range labels {
+		str := fmt.Sprintf("%-10d %s\n", label.ID, label.Name)
+		bytes = append(bytes, str...)
+	}
+	return string(bytes)
 }
 
 func init() {
