@@ -37,11 +37,11 @@ var getProjectsCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		fmt.Printf(createResult(projects))
+		fmt.Printf(createGetProjectsResult(projects))
 	},
 }
 
-func createResult(projects []todoist.Project) string {
+func createGetProjectsResult(projects []todoist.Project) string {
 	var bytes []byte
 	bytes = append(bytes, "ID         NAME\n"...)
 	for _, project := range projects {

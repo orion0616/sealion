@@ -6,13 +6,13 @@ import (
 	"github.com/orion0616/sealion/todoist"
 )
 
-func TestCreateResult(t *testing.T) {
+func TestCreateGetProjectsResult(t *testing.T) {
 	p1 := todoist.Project{ID: 111, Name: "test1"}
 	p2 := todoist.Project{ID: 222, Name: "test2"}
 	p3 := todoist.Project{ID: 3333333333, Name: "test3"}
 	projects := []todoist.Project{p1, p2, p3}
 
-	actual := createResult(projects)
+	actual := createGetProjectsResult(projects)
 	expected := `ID         NAME
 111        test1
 222        test2
