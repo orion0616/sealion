@@ -71,26 +71,23 @@ func (c *Client) AddLabels(labelNames []string, project string) error {
 	if err != nil {
 		return err
 	}
+	commands := "["
 	for _, task := range tasks {
 		labelIDs, err := c.createLabelIDs(labelNames)
 		if err != nil {
 			return err
 		}
-		err = c.AddLabelsToTask(labelIDs, task.ID)
+
+		// TODO : using sync API
+		command, err := makeAddLabelsCommand(labelIDs, task.ID)
 		if err != nil {
 			return err
 		}
+		commands += command
+		commands += ","
 	}
-	return nil
-}
-
-// AddLabelsToTask adds labels to a task
-func (c *Client) AddLabelsToTask(labelIDs []int64, taskID int64) error {
-	uuid, err := util.CreateUUID()
-	if err != nil {
-		return err
-	}
-	commands := fmt.Sprintf("[{\"type\": \"item_update\", \"uuid\": \"%s\", \"args\": {\"id\": %d, \"labels\": %s}}]", uuid, taskID, createLabelIDsString(labelIDs))
+	commands = strings.TrimRight(commands, ",")
+	commands += "]"
 	values := url.Values{}
 	values.Add("token", c.Token)
 	values.Add("commands", commands)
@@ -101,9 +98,18 @@ func (c *Client) AddLabelsToTask(labelIDs []int64, taskID int64) error {
 	}
 	defer resp.Body.Close()
 	if resp.Status != "200 OK" {
-		return fmt.Errorf("failed to add labels to a task ID `%d`. Status -> %s", taskID, resp.Status)
+		return fmt.Errorf("failed to add labels to projects. Status -> %s", resp.Status)
 	}
 	return nil
+}
+
+func makeAddLabelsCommand(labelIDs []int64, taskID int64) (string, error) {
+	uuid, err := util.CreateUUID()
+	if err != nil {
+		return "", err
+	}
+	command := fmt.Sprintf("{\"type\": \"item_update\", \"uuid\": \"%s\", \"args\": {\"id\": %d, \"labels\": %s}}", uuid, taskID, createLabelIDsString(labelIDs))
+	return command, nil
 }
 
 func (c *Client) createLabelIDs(labelNames []string) ([]int64, error) {
