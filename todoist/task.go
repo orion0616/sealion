@@ -89,20 +89,37 @@ func ExtractTasks(resp *http.Response) ([]Task, error) {
 // AddTasks adds tasks from a file
 func (c *Client) AddTasks(fileName string) error {
 	lines, err := util.ReadFile(fileName)
+	commands := "["
 	for _, line := range lines {
 		words := strings.Split(line, " ")
-		err = c.addTask(words[0], words[1])
+		command, err := c.makeAddTaskCommand(words[0], words[1])
 		if err != nil {
 			return err
 		}
+		commands += command
+		commands += ","
 	}
+	commands = strings.TrimRight(commands, ",")
+	commands += "]"
+	values := url.Values{}
+	values.Add("token", c.Token)
+	values.Add("commands", commands)
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.Status != "200 OK" {
+		return fmt.Errorf("failed to add task to a project. Status -> %s", resp.Status)
+	}
+	fmt.Println("succeded to add tasks.")
 	return nil
 }
 
-func (c *Client) addTask(taskName, projectName string) error {
+func (c *Client) makeAddTaskCommand(taskName, projectName string) (string, error) {
 	projects, err := c.GetProjects()
 	if err != nil {
-		return err
+		return "", err
 	}
 	var projectID int64
 	for _, project := range projects {
@@ -113,25 +130,13 @@ func (c *Client) addTask(taskName, projectName string) error {
 
 	uuid1, err := util.CreateUUID()
 	if err != nil {
-		return err
+		return "", err
 	}
 	uuid2, err := util.CreateUUID()
 	if err != nil {
-		return err
+		return "", err
 	}
-	commands := fmt.Sprintf("[{\"type\": \"item_add\", \"temp_id\": \"%s\", \"uuid\": \"%s\",\"args\": {\"content\": \"%s\", \"project_id\": %d}}]",
+	command := fmt.Sprintf("{\"type\": \"item_add\", \"temp_id\": \"%s\", \"uuid\": \"%s\",\"args\": {\"content\": \"%s\", \"project_id\": %d}}",
 		uuid1, uuid2, taskName, projectID)
-	values := url.Values{}
-	values.Add("token", c.Token)
-	values.Add("commands", commands)
-
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.Status != "200 OK" {
-		return fmt.Errorf("failed to add task to a project ID `%d`. Status -> %s", projectID, resp.Status)
-	}
-	return nil
+	return command, nil
 }
