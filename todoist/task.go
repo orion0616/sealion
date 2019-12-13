@@ -43,6 +43,24 @@ type Task struct {
 	Collapsed      int         `json:"collapsed"`
 }
 
+func (c *Client) GetAllTasks() ([]Task, error) {
+	values := url.Values{}
+	values.Add("token", c.Token)
+	values.Add("sync_token", "*")
+	values.Add("resource_types", "[\"items\"]")
+
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	tasks, err := ExtractTasks(resp)
+	if err != nil {
+		return nil, err
+	}
+	return tasks, err
+}
+
 // GetTasks returns a list of todoist task in a project
 func (c *Client) GetTasks(projectName string) ([]Task, error) {
 	projects, err := c.GetProjects()
