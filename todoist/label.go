@@ -73,7 +73,7 @@ func (c *Client) AddLabels(labelNames []string, project string) error {
 	}
 	commands := "["
 	for _, task := range tasks {
-		labelIDs, err := c.createLabelIDs(labelNames)
+		labelIDs, err := c.CreateLabelIDs(labelNames)
 		if err != nil {
 			return err
 		}
@@ -112,7 +112,7 @@ func makeAddLabelsCommand(labelIDs []int64, taskID int64) (string, error) {
 	return command, nil
 }
 
-func (c *Client) createLabelIDs(labelNames []string) ([]int64, error) {
+func (c *Client) CreateLabelIDs(labelNames []string) ([]int64, error) {
 	var ret []int64
 	var added bool
 	labels, err := c.GetLabels()
