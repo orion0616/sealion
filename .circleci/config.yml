@@ -6,4 +6,5 @@ jobs:
     working_directory: /go/src/github.com/orion0616/sealion
     steps:
       - checkout
+      - run: go build
       - run: go test github.com/orion0616/sealion/...
