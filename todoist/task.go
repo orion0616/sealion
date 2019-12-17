@@ -34,13 +34,21 @@ type Task struct {
 	Checked        int         `json:"checked"`
 	AddedByUID     interface{} `json:"added_by_uid"`
 	UserID         int         `json:"user_id"`
-	Due            interface{} `json:"due"`
+	Due            Due         `json:"due"`
 	Priority       int         `json:"priority"`
 	ParentID       interface{} `json:"parent_id"`
 	ResponsibleUID interface{} `json:"responsible_uid"`
 	ProjectID      int64       `json:"project_id"`
 	DateCompleted  interface{} `json:"date_completed"`
 	Collapsed      int         `json:"collapsed"`
+}
+
+type Due struct {
+	Date        string      `json:"date"`
+	Timezone    interface{} `json:"timezone"`
+	IsRecurring bool        `json:"is_recurring"`
+	String      string      `json:"string"`
+	Lang        string      `json:"lang"`
 }
 
 func (c *Client) GetAllTasks() ([]Task, error) {
