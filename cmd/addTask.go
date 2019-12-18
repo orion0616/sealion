@@ -42,6 +42,7 @@ var addTaskCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
+		fmt.Println("succeded to add tasks.")
 	},
 }
 

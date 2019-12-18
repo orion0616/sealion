@@ -138,7 +138,6 @@ func (c *Client) AddTasks(fileName string) error {
 	if resp.Status != "200 OK" {
 		return fmt.Errorf("failed to add task to a project. Status -> %s", resp.Status)
 	}
-	fmt.Println("succeded to add tasks.")
 	return nil
 }
 
