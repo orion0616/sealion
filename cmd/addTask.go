@@ -26,6 +26,10 @@ import (
 var addTaskCmd = &cobra.Command{
 	Use:   "task",
 	Short: "add tasks written in a file to a project",
+	Long: `A formart of file is like below
+<taskname1> <projectname1>
+<taskname2> <projectname2>
+...`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fileName, err := cmd.Flags().GetString("file")
 		if err != nil {
