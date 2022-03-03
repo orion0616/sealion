@@ -31,11 +31,7 @@ var addTaskCmd = &cobra.Command{
 <taskname2> <projectname2>
 ...`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fileName, err := cmd.Flags().GetString("file")
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		fileName, _ := cmd.Flags().GetString("file")
 		client, err := todoist.NewClient()
 		if err != nil {
 			fmt.Println(err)
