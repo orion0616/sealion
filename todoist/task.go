@@ -141,6 +141,33 @@ func (c *Client) AddTasks(fileName string) error {
 	return nil
 }
 
+func (c *Client) AddSeqTasks(projectName string, number int) error {
+	commands := "["
+	for i := 1; i <= number; i++ {
+		taskName := strconv.Itoa(i)
+		command, err := c.makeAddTaskCommand(taskName, projectName)
+		if err != nil {
+			return err
+		}
+		commands += command
+		commands += ","
+	}
+	commands = strings.TrimRight(commands, ",")
+	commands += "]"
+	values := url.Values{}
+	values.Add("token", c.Token)
+	values.Add("commands", commands)
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.Status != "200 OK" {
+		return fmt.Errorf("failed to add task to a project. Status -> %s", resp.Status)
+	}
+	return nil
+}
+
 func (c *Client) makeAddTaskCommand(taskName, projectName string) (string, error) {
 	projects, err := c.GetProjects()
 	if err != nil {

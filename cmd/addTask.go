@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/orion0616/sealion/todoist"
 	"github.com/spf13/cobra"
@@ -31,13 +32,23 @@ var addTaskCmd = &cobra.Command{
 <taskname2> <projectname2>
 ...`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fileName, _ := cmd.Flags().GetString("file")
 		client, err := todoist.NewClient()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		err = client.AddTasks(fileName)
+		fileName, _ := cmd.Flags().GetString("file")
+		projectName, _ := cmd.Flags().GetString("project")
+		number, _ := cmd.Flags().GetString("number")
+		if fileName != "" && (projectName == "" || number == "") {
+			err = addTasksFromFile(client, fileName)
+		} else if (fileName != "") {
+			err = fmt.Errorf("You cannot use -f/--file option with -p/--project and -n/--number.")
+		} else if (projectName != "" && number != "") {
+			addSeqTasks(client, projectName, number)
+		} else {
+			err = fmt.Errorf("You cannot use -p/--project and -n/--number alone.")
+		}
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -46,7 +57,21 @@ var addTaskCmd = &cobra.Command{
 	},
 }
 
+func addTasksFromFile(client *todoist.Client, fileName string) error {
+	return client.AddTasks(fileName)
+}
+
+func addSeqTasks(client *todoist.Client, projectName string, number string) error {
+	num, err := strconv.Atoi(number)
+	if err != nil {
+		return err
+	}
+	return client.AddSeqTasks(projectName, num)
+}
+
 func init() {
 	addCmd.AddCommand(addTaskCmd)
 	addTaskCmd.Flags().StringP("file", "f", "", "select a file")
+	addTaskCmd.Flags().StringP("project", "p", "", "specify a project")
+	addTaskCmd.Flags().StringP("number", "n", "", "specify the number of tasks")
 }
