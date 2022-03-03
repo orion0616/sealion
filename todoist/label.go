@@ -60,6 +60,7 @@ func ExtractLabels(resp *http.Response) ([]Label, error) {
 
 	var getLabelsResult GetLabelsResult
 	if err := json.Unmarshal(data, &getLabelsResult); err != nil {
+		fmt.Println("Failed to unmarshal in ExtractLabels. data = " + string(data))
 		return nil, err
 	}
 	return getLabelsResult.Labels, nil

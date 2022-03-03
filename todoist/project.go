@@ -1,6 +1,7 @@
 package todoist
 
 import (
+	"fmt"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -60,6 +61,7 @@ func ExtractProjects(resp *http.Response) ([]Project, error) {
 
 	var getProjectsResult GetProjectsResult
 	if err := json.Unmarshal(data, &getProjectsResult); err != nil {
+		fmt.Println("Failed to unmarshal in ExtractProjects. data = " + string(data))
 		return nil, err
 	}
 	return getProjectsResult.Projects, nil

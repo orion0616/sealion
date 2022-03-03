@@ -42,9 +42,9 @@ var addTaskCmd = &cobra.Command{
 		number, _ := cmd.Flags().GetString("number")
 		if fileName != "" && (projectName == "" || number == "") {
 			err = addTasksFromFile(client, fileName)
-		} else if (fileName != "") {
+		} else if fileName != "" {
 			err = fmt.Errorf("You cannot use -f/--file option with -p/--project and -n/--number.")
-		} else if (projectName != "" && number != "") {
+		} else if projectName != "" && number != "" {
 			addSeqTasks(client, projectName, number)
 		} else {
 			err = fmt.Errorf("You cannot use -p/--project and -n/--number alone.")

@@ -107,6 +107,7 @@ func ExtractTasks(resp *http.Response) ([]Task, error) {
 
 	var projectData ProjectData
 	if err := json.Unmarshal(data, &projectData); err != nil {
+		fmt.Println("Failed to unmarshal in ExtractTasks. data = " + string(data))
 		return nil, err
 	}
 	return projectData.Tasks, nil
