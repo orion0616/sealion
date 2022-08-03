@@ -4,7 +4,7 @@ Sealion is a CLI tool for Todoist.
 ## How to use
 ### Install
 ```
-go get github.com/orion0616/sealion
+go install github.com/orion0616/sealion@latest
 ```
 
 ### Use
