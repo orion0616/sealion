@@ -1,8 +1,8 @@
 package todoist
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -40,7 +40,7 @@ func (c *Client) GetProjects() ([]Project, error) {
 	values.Add("sync_token", "*")
 	values.Add("resource_types", "[\"projects\"]")
 
-	resp, err := c.HTTPClient.PostForm("https://todoist.com/api/v9/sync", values)
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
 	if err != nil {
 		return nil, err
 	}
