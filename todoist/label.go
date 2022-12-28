@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -79,7 +80,6 @@ func (c *Client) AddLabels(labelNames []string, project string) error {
 			return err
 		}
 
-		// TODO : using sync API
 		command, err := makeAddLabelsCommand(labelIDs, task.ID)
 		if err != nil {
 			return err
@@ -99,7 +99,8 @@ func (c *Client) AddLabels(labelNames []string, project string) error {
 	}
 	defer resp.Body.Close()
 	if resp.Status != "200 OK" {
-		return fmt.Errorf("failed to add labels to projects. Status -> %s", resp.Status)
+		b, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to add labels to projects.\nStatus -> %s\nBody -> %s\n", resp.Status, string(b))
 	}
 	return nil
 }

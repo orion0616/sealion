@@ -168,29 +168,14 @@ func (c *Client) AddSeqTasks(projectName string, number int) error {
 	}
 	commands = strings.TrimRight(commands, ",")
 	commands += "]"
-	fmt.Println(commands)
-	values := url.Values{}
-	values.Add("commands", commands)
-
-	endpoint := "https://api.todoist.com/sync/v9/sync"
-	u, err := url.Parse(endpoint)
-	if err != nil {
-		return err
-	}
-	values.Add("sync_token", "*")
-	u.RawQuery = values.Encode()
-
-	req, err := http.NewRequest("GET", u.String(), nil)
-	req.Header.Set("Authorization", "Bearer "+c.Token)
-
-	resp, err := c.HTTPClient.Do(req)
+	resp, err := c.do("", commands)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.Status != "200 OK" {
 		b, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("failed to add task to a project.\nStatus -> %s.\nBody -> %s", resp.Status, string(b))
+		return fmt.Errorf("failed to add task to a project.\nStatus -> %s.\nBody -> %s\n", resp.Status, string(b))
 	} else {
 		b, _ := io.ReadAll(resp.Body)
 		fmt.Printf("Body -> %s", string(b))

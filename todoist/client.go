@@ -15,6 +15,7 @@ package todoist
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"os"
 )
 
@@ -39,4 +40,27 @@ func NewClient() (*Client, error) {
 		return nil, err
 	}
 	return &Client{&http.Client{}, token}, nil
+}
+
+func (c Client) do(resource_type string, commands string) (*http.Response, error) {
+	values := url.Values{}
+	if commands != "" {
+		values.Add("commands", commands)
+	}
+	if resource_type != "" {
+		values.Add("resource_types", resource_type)
+	}
+
+	endpoint := "https://api.todoist.com/sync/v9/sync"
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	values.Add("sync_token", "*")
+	u.RawQuery = values.Encode()
+
+	req, err := http.NewRequest("GET", u.String(), nil)
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
+	return c.HTTPClient.Do(req)
 }

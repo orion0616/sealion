@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 )
 
 // GetProjectsResult express a result of getting all projects
@@ -35,20 +34,7 @@ type Project struct {
 
 // GetProjects returns a list of todoist projects
 func (c *Client) GetProjects() ([]Project, error) {
-	endpoint := "https://api.todoist.com/sync/v9/sync"
-	u, err := url.Parse(endpoint)
-	if err != nil {
-		return nil, err
-	}
-	values := url.Values{}
-	values.Add("sync_token", "*")
-	values.Add("resource_types", "[\"projects\"]")
-	u.RawQuery = values.Encode()
-
-	req, err := http.NewRequest("GET", u.String(), nil)
-	req.Header.Set("Authorization", "Bearer "+c.Token)
-
-	resp, err := c.HTTPClient.Do(req)
+	resp, err := c.do("[\"projects\"]", "")
 	if err != nil {
 		return nil, err
 	}
