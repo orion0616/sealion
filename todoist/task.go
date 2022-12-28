@@ -49,24 +49,6 @@ type Due struct {
 	Lang        string      `json:"lang"`
 }
 
-func (c *Client) GetAllTasks() ([]Task, error) {
-	values := url.Values{}
-	values.Add("token", c.Token)
-	values.Add("sync_token", "*")
-	values.Add("resource_types", "[\"items\"]")
-
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	tasks, err := ExtractTasks(resp)
-	if err != nil {
-		return nil, err
-	}
-	return tasks, err
-}
-
 // GetTasks returns a list of todoist task in a project
 func (c *Client) GetTasks(projectName string) ([]Task, error) {
 	projects, err := c.GetProjects()
@@ -116,47 +98,6 @@ func ExtractTasks(resp *http.Response) ([]Task, error) {
 		return nil, fmt.Errorf("Failed to unmarshal in ExtractTasks. data = " + string(data))
 	}
 	return projectData.Tasks, nil
-}
-
-// AddTasks adds tasks from a file
-func (c *Client) AddTasks(fileName string) error {
-	lines, err := util.ReadFile(fileName)
-	commands := "["
-	for _, line := range lines {
-		words := strings.Split(line, " ")
-		command, err := c.makeAddTaskCommand(words[0], words[1])
-		if err != nil {
-			return err
-		}
-		commands += command
-		commands += ","
-	}
-	commands = strings.TrimRight(commands, ",")
-	commands += "]"
-	values := url.Values{}
-	// values.Add("token", c.Token)
-	values.Add("commands", commands)
-
-	req, err := http.NewRequest("POST", "https://api.todoist.com/sync/v9/sync", nil)
-	req.Header = map[string][]string{
-		"Authorization": {"Bearer " + c.Token},
-	}
-	req.Header.Add("Authorization", "Bearer "+c.Token)
-	// values := url.Values{}
-	values.Add("sync_token", "*")
-	// values.Add("resource_types", "[\"projects\"]")
-	req.Form = values
-	resp, err := c.HTTPClient.Do(req)
-
-	// resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	if resp.Status != "200 OK" {
-		return fmt.Errorf("failed to add task to a project. Status -> %s", resp.Status)
-	}
-	return nil
 }
 
 func (c *Client) AddSeqTasks(projectName string, number int) error {

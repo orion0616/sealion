@@ -37,14 +37,9 @@ var addTaskCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		fileName, _ := cmd.Flags().GetString("file")
 		projectName, _ := cmd.Flags().GetString("project")
 		number, _ := cmd.Flags().GetString("number")
-		if fileName != "" && (projectName == "" || number == "") {
-			err = addTasksFromFile(client, fileName)
-		} else if fileName != "" {
-			err = fmt.Errorf("You cannot use -f/--file option with -p/--project and -n/--number.")
-		} else if projectName != "" && number != "" {
+		if projectName != "" && number != "" {
 			err = addSeqTasks(client, projectName, number)
 		} else {
 			err = fmt.Errorf("You cannot use -p/--project and -n/--number alone.")
@@ -57,10 +52,6 @@ var addTaskCmd = &cobra.Command{
 	},
 }
 
-func addTasksFromFile(client *todoist.Client, fileName string) error {
-	return client.AddTasks(fileName)
-}
-
 func addSeqTasks(client *todoist.Client, projectName string, number string) error {
 	num, err := strconv.Atoi(number)
 	if err != nil {
@@ -71,7 +62,6 @@ func addSeqTasks(client *todoist.Client, projectName string, number string) erro
 
 func init() {
 	addCmd.AddCommand(addTaskCmd)
-	addTaskCmd.Flags().StringP("file", "f", "", "select a file")
 	addTaskCmd.Flags().StringP("project", "p", "", "specify a project")
 	addTaskCmd.Flags().StringP("number", "n", "", "specify the number of tasks")
 }
