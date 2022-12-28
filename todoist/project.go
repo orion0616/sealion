@@ -40,7 +40,7 @@ func (c *Client) GetProjects() ([]Project, error) {
 	values.Add("sync_token", "*")
 	values.Add("resource_types", "[\"projects\"]")
 
-	resp, err := c.HTTPClient.PostForm("https://todoist.com/api/v8/sync", values)
+	resp, err := c.HTTPClient.PostForm("https://todoist.com/api/v9/sync", values)
 	if err != nil {
 		return nil, err
 	}

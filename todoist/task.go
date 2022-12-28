@@ -57,7 +57,7 @@ func (c *Client) GetAllTasks() ([]Task, error) {
 	values.Add("sync_token", "*")
 	values.Add("resource_types", "[\"items\"]")
 
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (c *Client) GetTasks(projectName string) ([]Task, error) {
 	values.Add("token", c.Token)
 	values.Add("project_id", strconv.FormatInt(projectID, 10))
 
-	resp, err := c.HTTPClient.PostForm("https://todoist.com/sync/v8/projects/get_data", values)
+	resp, err := c.HTTPClient.PostForm("https://todoist.com/sync/v9/projects/get_data", values)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (c *Client) AddTasks(fileName string) error {
 	values := url.Values{}
 	values.Add("token", c.Token)
 	values.Add("commands", commands)
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (c *Client) AddSeqTasks(projectName string, number int) error {
 	values := url.Values{}
 	values.Add("token", c.Token)
 	values.Add("commands", commands)
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
 	if err != nil {
 		return err
 	}

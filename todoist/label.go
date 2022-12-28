@@ -39,7 +39,7 @@ func (c *Client) GetLabels() ([]Label, error) {
 	values.Add("sync_token", "*")
 	values.Add("resource_types", "[\"labels\"]")
 
-	resp, err := c.HTTPClient.PostForm("https://todoist.com/api/v8/sync", values)
+	resp, err := c.HTTPClient.PostForm("https://todoist.com/api/v9/sync", values)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (c *Client) AddLabels(labelNames []string, project string) error {
 	values.Add("token", c.Token)
 	values.Add("commands", commands)
 
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v8/sync", values)
+	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
 	if err != nil {
 		return err
 	}
