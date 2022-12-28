@@ -34,7 +34,7 @@ type Project struct {
 
 // GetProjects returns a list of todoist projects
 func (c *Client) GetProjects() ([]Project, error) {
-	resp, err := c.do("[\"projects\"]", "")
+	resp, err := c.do("[\"projects\"]", "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +55,7 @@ func ExtractProjects(resp *http.Response) ([]Project, error) {
 
 	var getProjectsResult GetProjectsResult
 	if err := json.Unmarshal(data, &getProjectsResult); err != nil {
-		fmt.Println("Failed to unmarshal in ExtractProjects. data = " + string(data))
-		return nil, err
+		return nil, fmt.Errorf("Failed to unmarshal in ExtractProjects. data = " + string(data))
 	}
 	return getProjectsResult.Projects, nil
 }

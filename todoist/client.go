@@ -42,7 +42,7 @@ func NewClient() (*Client, error) {
 	return &Client{&http.Client{}, token}, nil
 }
 
-func (c Client) do(resource_type string, commands string) (*http.Response, error) {
+func (c Client) do(resource_type string, commands string, suffix string) (*http.Response, error) {
 	values := url.Values{}
 	if commands != "" {
 		values.Add("commands", commands)
@@ -51,7 +51,7 @@ func (c Client) do(resource_type string, commands string) (*http.Response, error
 		values.Add("resource_types", resource_type)
 	}
 
-	endpoint := "https://api.todoist.com/sync/v9/sync"
+	endpoint := "https://api.todoist.com/sync/v9/sync" + suffix
 	u, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err

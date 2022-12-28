@@ -21,27 +21,24 @@ type ProjectData struct {
 
 // Task is correspond to a todoist item
 type Task struct {
-	LegacyProjetID int         `json:"legacy_project_id"`
-	IsDeleted      int         `json:"is_deleted"`
-	AssignedByUID  int         `json:"assigned_by_uid"`
-	Labels         []int64     `json:"labels"`
+	IsDeleted      bool        `json:"is_deleted"`
+	AssignedByUID  string      `json:"assigned_by_uid"`
+	Labels         []string    `json:"labels"`
 	SyncID         interface{} `json:"sync_id"`
-	SectionID      interface{} `json:"section_id"`
-	InHistory      int         `json:"in_history"`
+	SectionID      string      `json:"section_id"`
+	InHistory      bool        `json:"in_history"`
 	ChildOrder     int         `json:"child_order"`
-	DateAdded      time.Time   `json:"date_added"`
-	ID             int64       `json:"id"`
+	DateAdded      time.Time   `json:"added_at"`
+	ID             string      `json:"id"`
 	Content        string      `json:"content"`
-	Checked        int         `json:"checked"`
-	AddedByUID     interface{} `json:"added_by_uid"`
-	UserID         int         `json:"user_id"`
-	Due            Due         `json:"due"`
+	Checked        bool        `json:"checked"`
+	UserID         string      `json:"user_id"`
+	Due            interface{} `json:"due"`
 	Priority       int         `json:"priority"`
-	ParentID       interface{} `json:"parent_id"`
+	ParentID       string      `json:"parent_id"`
 	ResponsibleUID interface{} `json:"responsible_uid"`
-	ProjectID      int64       `json:"project_id"`
-	DateCompleted  interface{} `json:"date_completed"`
-	Collapsed      int         `json:"collapsed"`
+	ProjectID      string      `json:"project_id"`
+	Collapsed      bool        `json:"collapsed"`
 }
 
 type Due struct {
@@ -84,10 +81,18 @@ func (c *Client) GetTasks(projectName string) ([]Task, error) {
 	}
 
 	values := url.Values{}
-	values.Add("token", c.Token)
 	values.Add("project_id", strconv.FormatInt(projectID, 10))
+	endpoint := "https://api.todoist.com/sync/v9/projects/get_data"
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	u.RawQuery = values.Encode()
 
-	resp, err := c.HTTPClient.PostForm("https://todoist.com/sync/v9/projects/get_data", values)
+	req, err := http.NewRequest("GET", u.String(), nil)
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +113,7 @@ func ExtractTasks(resp *http.Response) ([]Task, error) {
 
 	var projectData ProjectData
 	if err := json.Unmarshal(data, &projectData); err != nil {
-		fmt.Println("Failed to unmarshal in ExtractTasks. data = " + string(data))
-		return nil, err
+		return nil, fmt.Errorf("Failed to unmarshal in ExtractTasks. data = " + string(data))
 	}
 	return projectData.Tasks, nil
 }
@@ -168,7 +172,7 @@ func (c *Client) AddSeqTasks(projectName string, number int) error {
 	}
 	commands = strings.TrimRight(commands, ",")
 	commands += "]"
-	resp, err := c.do("", commands)
+	resp, err := c.do("", commands, "")
 	if err != nil {
 		return err
 	}
@@ -176,9 +180,6 @@ func (c *Client) AddSeqTasks(projectName string, number int) error {
 	if resp.Status != "200 OK" {
 		b, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("failed to add task to a project.\nStatus -> %s.\nBody -> %s\n", resp.Status, string(b))
-	} else {
-		b, _ := io.ReadAll(resp.Body)
-		fmt.Printf("Body -> %s", string(b))
 	}
 	return nil
 }
