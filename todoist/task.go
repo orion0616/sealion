@@ -3,6 +3,7 @@ package todoist
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -78,7 +79,7 @@ func (c *Client) GetTasks(projectName string) ([]Task, error) {
 	var projectID int64
 	for _, project := range projects {
 		if project.Name == projectName {
-			projectID = int64(project.ID)
+			projectID, _ = strconv.ParseInt(project.ID, 10, 64)
 		}
 	}
 
@@ -129,9 +130,21 @@ func (c *Client) AddTasks(fileName string) error {
 	commands = strings.TrimRight(commands, ",")
 	commands += "]"
 	values := url.Values{}
-	values.Add("token", c.Token)
+	// values.Add("token", c.Token)
 	values.Add("commands", commands)
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
+
+	req, err := http.NewRequest("POST", "https://api.todoist.com/sync/v9/sync", nil)
+	req.Header = map[string][]string{
+		"Authorization": {"Bearer " + c.Token},
+	}
+	req.Header.Add("Authorization", "Bearer "+c.Token)
+	// values := url.Values{}
+	values.Add("sync_token", "*")
+	// values.Add("resource_types", "[\"projects\"]")
+	req.Form = values
+	resp, err := c.HTTPClient.Do(req)
+
+	// resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
 	if err != nil {
 		return err
 	}
@@ -155,16 +168,32 @@ func (c *Client) AddSeqTasks(projectName string, number int) error {
 	}
 	commands = strings.TrimRight(commands, ",")
 	commands += "]"
+	fmt.Println(commands)
 	values := url.Values{}
-	values.Add("token", c.Token)
 	values.Add("commands", commands)
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
+
+	endpoint := "https://api.todoist.com/sync/v9/sync"
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return err
+	}
+	values.Add("sync_token", "*")
+	u.RawQuery = values.Encode()
+
+	req, err := http.NewRequest("GET", u.String(), nil)
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 	if resp.Status != "200 OK" {
-		return fmt.Errorf("failed to add task to a project. Status -> %s", resp.Status)
+		b, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to add task to a project.\nStatus -> %s.\nBody -> %s", resp.Status, string(b))
+	} else {
+		b, _ := io.ReadAll(resp.Body)
+		fmt.Printf("Body -> %s", string(b))
 	}
 	return nil
 }
@@ -177,7 +206,7 @@ func (c *Client) makeAddTaskCommand(taskName, projectName string) (string, error
 	var projectID int64
 	for _, project := range projects {
 		if project.Name == projectName {
-			projectID = int64(project.ID)
+			projectID, _ = strconv.ParseInt(project.ID, 10, 64)
 		}
 	}
 

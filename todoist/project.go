@@ -19,35 +19,35 @@ type GetProjectsResult struct {
 
 // Project express a todoist project
 type Project struct {
-	IsFavorite   int         `json:"is_favorite"`
-	Color        int         `json:"color"`
-	Collapsed    int         `json:"collapsed"`
-	InboxProject bool        `json:"inbox_project,omitempty"`
-	ChildOrder   int         `json:"child_order"`
-	ID           int         `json:"id"`
-	Name         string      `json:"name"`
-	IsDeleted    int         `json:"is_deleted"`
-	ParentID     interface{} `json:"parent_id"`
-	LegacyID     int         `json:"legacy_id,omitempty"`
-	Shared       bool        `json:"shared"`
-	IsArchived   int         `json:"is_archived"`
+	IsFavorite bool        `json:"is_favorite"`
+	Color      string      `json:"color"`
+	Collapsed  bool        `json:"collapsed"`
+	ChildOrder int         `json:"child_order"`
+	ID         string      `json:"id"`
+	Name       string      `json:"name"`
+	IsDeleted  bool        `json:"is_deleted"`
+	ParentID   interface{} `json:"parent_id"`
+	Shared     bool        `json:"shared"`
+	IsArchived bool        `json:"is_archived"`
+	SyncID     interface{} `json:"sync_id"`
+	ViewStyle  string      `json:"view_style"`
 }
 
 // GetProjects returns a list of todoist projects
 func (c *Client) GetProjects() ([]Project, error) {
-	// resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
-
-	req, err := http.NewRequest("POST", "https://api.todoist.com/sync/v9/sync", nil)
-
-	req.Header = map[string][]string{
-		"Authorization": {"Bearer " + c.Token},
+	endpoint := "https://api.todoist.com/sync/v9/sync"
+	u, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
 	}
-
-	req.Header.Add("Authorization", "Bearer "+c.Token)
 	values := url.Values{}
 	values.Add("sync_token", "*")
 	values.Add("resource_types", "[\"projects\"]")
-	req.Form = values
+	u.RawQuery = values.Encode()
+
+	req, err := http.NewRequest("GET", u.String(), nil)
+	req.Header.Set("Authorization", "Bearer "+c.Token)
+
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
