@@ -35,12 +35,20 @@ type Project struct {
 
 // GetProjects returns a list of todoist projects
 func (c *Client) GetProjects() ([]Project, error) {
+	// resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
+
+	req, err := http.NewRequest("POST", "https://api.todoist.com/sync/v9/sync", nil)
+
+	req.Header = map[string][]string{
+		"Authorization": {"Bearer " + c.Token},
+	}
+
+	req.Header.Add("Authorization", "Bearer "+c.Token)
 	values := url.Values{}
-	values.Add("token", c.Token)
 	values.Add("sync_token", "*")
 	values.Add("resource_types", "[\"projects\"]")
-
-	resp, err := c.HTTPClient.PostForm("https://api.todoist.com/sync/v9/sync", values)
+	req.Form = values
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
