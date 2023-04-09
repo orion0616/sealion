@@ -1,6 +1,6 @@
 module github.com/orion0616/sealion
 
-go 1.13
+go 1.19
 
 require (
 	github.com/google/uuid v1.1.1
